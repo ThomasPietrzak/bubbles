@@ -25,6 +25,7 @@ function game_init()
 	malus_item=3
 	items = {}
 	max_items = 1000
+	bubble_fly_probability=70
 
 	bonus=0
 	malus=0
@@ -53,8 +54,21 @@ function game_update()
 	check_collisions()
 	check_win_lose()
 
-	-- spawn bubbles
+	fly_bubbles()
 	spawn_bubbles()
+end
+
+function fly_bubbles()
+ for i in all(items) do
+  if rnd(100)>bubble_fly_probability then
+	  i.x+=rnd(2)-1
+	  i.x=clamp(i.x,min_x,max_x)
+	  i.y-=1
+	  if i.y<min_y then
+	   del(items,i)
+	  end
+	 end
+ end
 end
 
 function spawn_bubbles()
@@ -63,7 +77,7 @@ function spawn_bubbles()
 	 if rnd(100) < (i==4 and bonus_spawn_rate or malus_spawn_rate) then
 	 	local x = flr(rnd(max_x-min_x-4))+min_x-1
 	 	local y = flr(rnd(max_y-min_y-4))+min_y-1
-	 	spawn_item(i,x,y)
+	 	spawn_item(i,x,max_y)
 		end
 	end
 end
@@ -152,12 +166,7 @@ end
 
 function title_init()
   bubbles = {}
-  for i=1,10 do
-    add(bubbles,{c=3,x=rnd(128),y=rnd(30)})
-    add(bubbles,{c=4,x=rnd(128),y=rnd(30)})
-    --add(bubbles,{c=3,x=rnd(128),y=rnd(30)+80})
-    --add(bubbles,{c=4,x=rnd(128),y=rnd(30)+80})    
-  end
+  music(0)
 end
 
 function title_update()
@@ -167,19 +176,38 @@ function title_update()
 	 _update=game_update
 	 _draw=game_draw 
 	end
+ for b in all(bubbles) do
+  if rnd(100)>70 then
+	  b.x+=rnd(2)-1
+	  b.x=clamp(b.x,0,128)
+	  b.y-=1
+	  if b.y<0 then
+	   del(bubbles,b)
+	  end
+	 end
+ end
+ spawn_bubble(3,rnd(10),128)
+	spawn_bubble(3,rnd(10)+112,128)
+	spawn_bubble(4,rnd(10),128)
+	spawn_bubble(4,rnd(10)+112,128)
+end
+
+function spawn_bubble(c, x, y)
+	i = { c=c,x=x,y=y }
+	if (rnd(100)>95) then add(bubbles,i) end
 end
 
 function title_draw()
  cls()
  
  for b in all(bubbles) do
-   spr(b.c,b.x,b.y)
+  spr(b.c,b.x,b.y)
  end
 
  --map(0,0,0,0)
-	print("collect the blue",10,40,6)
+	print("collect the blue",20,40,6)
 	print("bubbles",50,50,12)
-	print("avoid the red",10,60,6)
+	print("avoid the red",20,60,6)
 	print("bubbles",50,70,8)
 	print("press 🅾️",48,90,6)
 end
@@ -233,6 +261,15 @@ function gameover_draw()
  --map(0,0,0,0)
 	print("game over",46,40,8)
 	print("level "..level,50,60,8)
+end
+
+-->8
+-- utils
+function clamp(v,v_min,v_max)
+	if v<v_min then return v_min
+	elseif v>v_max then return v_max
+	end
+	return v
 end
 
 __gfx__
@@ -457,5 +494,10 @@ __map__
 8080808080808080808080808080808000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 0000000000000000000000818100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 __sfx__
-000200000775027740007000070000700007000070000700007000070000700007000070000700007000070000700007000070000700007000070000700007000070000700007000070000700007000070000700
-00020000110500a050000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+010200000775027740007000070000700007000070000700007000070000700007000070000700007000070000700007000070000700007000070000700007000070000700007000070000700007000070000700
+000a0000126500c100206001e0001f0001f000140001500015000020001c00018000210001f0001f000200001d000180000000000000000000000000000000000000000000000000000000000000000000000000
+000f20000915009100091500910009150091000915009100091500910009150091000c150001000c1500010009150001000915000100091500010009150001000915000100091500010013150001001315000100
+001e100015050000001c0501e0501f0501f050140001500015050020001c05018050210501f0501f050200001d000180000000000000000000000000000000000000000000000000000000000000000000000000
+__music__
+02 03024344
+
